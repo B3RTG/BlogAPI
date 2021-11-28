@@ -1,0 +1,20 @@
+{
+  "name": "blogapi",
+  "version": "1.0.0",
+  "description": "REST Api to manage blog entries",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon ./index.js",
+    "star": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "BeRT (albert.kais@gmail.com)",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
