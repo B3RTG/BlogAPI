@@ -2,6 +2,11 @@ POST http://localhost:3001/api/post HTTP/1.1
 Content-Type: application/json
 
 {
-    "title": "Nuevo post"
+    "Title": "Mongo DB setting up",
+    "Subtitle": "For Post model",
+    "PostType": "Databases",
+    "Content": "Content of the post",
+    "Author": "@BeRT",
+    "ImageURL": ""
 }
 

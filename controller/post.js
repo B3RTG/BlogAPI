@@ -1,63 +1,99 @@
+require('dotenv').config();
+require('../dbaccess/mongodb');
+
 const { request, response } = require("express");
 const express = require("express");
+const postErrorHandler = require('../middleware/PostErrorHandler');
 
+//Post model
+const Post = require('../models/post')
 
 //Datos iniciales post
-var posts = [
-    {
-        id: 1,
-        title: "Post numero uno",
-        type: "generic",
-        content: "post content"
-    },
-    {
-        id: 2,
-        title: "Post numero dos",
-        type: "generic",
-        content: "post content"
-    },
-    {
-        id: 3,
-        title: "Post numero tres",
-        type: "generic",
-        content: "post content"
-    }
-]
-
+let posts = []
 
 const router = express.Router();
+
 router.get("/", (request, response) => {
-    response.status(200).json(posts);
+    Post.find({}).then(( postdata ) => {
+        response.status(200).json(postdata);
+    }).catch((err) => {
+        response.status(204).json({err: `No data: ${err}`});
+    });    
 });
 
-router.get("/:id", (request, response) => {
-    const id = Number(request.params.id);
-    const post = posts.find((p)=>p.id === id);
-    if (post) response.status(200).json(post);
-    else response.status(404).end();
+router.get("/:id", (request, response, next) => {
+    const id = request.params.id;
+    Post.findById(id).then((postData) => {
+        if(postData) {
+            response.status(200).json(postData);
+        } else {
+            response.status(404).end();
+        }
+    }).catch( (err) => {
+        next(err);
+        // console.log(err);
+        // response.status(400).end();
+    });
+});
+
+router.delete("/:id", (request, response, next) => {
+    const {id} = request.params;
+
+    Post.findByIdAndRemove(id).then( result => {
+        response.status(204).end();
+    }).catch(err => next(err));
+
 });
 
 router.post("/", (request, response) => {
     const data = request.body;
 
-    if(!data || !data.content) {
-        response.status(400).json({
+    if(!data || !data.Content) {
+        return response.status(400).json({
             error: 'data or data.contet is missing'
         })
     }
 
-    const ids = posts.map( m => m.id);
-    const id = Math.max(...ids);
-    const newPost = {
-        id: id + 1,
-        title: data.title,
-        type: data.type,
-        content: data.content
-    }
+    const newPost = new Post( {
+        Title: data.Title,
+        Subtitle: data.Subtitle,
+        PostType: data.PostType,
+        Content: data.Content,
+        CreateDate: new Date(),
+        UpdateDate: new Date(),
+        Author: data.Author,
+        ImageURL: data.ImageURL
+    });
 
-    posts = posts.concat(newPost);
-    response.status(201).json(newPost);
+    console.log(newPost);
+    newPost.save().then(savedPost => {
+        response.status(201).json(savedPost);
+    }).catch(err => {
+        response.status(500).json({ error: err});
+    });
 });
 
+router.put("/", (request, response, next) => {
 
+    const {id} = request.params;
+    const data = request.body;
+
+    const postData = {
+        Title: data.Title,
+        Subtitle: data.Subtitle,
+        PostType: data.PostType,
+        Content: data.Content,
+        UpdateDate: new Date(),
+        Author: data.Author,
+        ImageURL: data.ImageURL
+    };
+
+    Post.findByIdAndUpdate(id, postData, {new:true}).then( result => {
+        response.json(result);
+    }).catch(err => {
+        next(err);
+    })
+});
+
+router.use(postErrorHandler)
 module.exports = router;
